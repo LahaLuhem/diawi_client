@@ -20,10 +20,15 @@ The [script](Library/openai-generator-cli.sh) that should automate the whole pro
 Open the terminal here at the root of the project and execute the code-generation command.
 ### Jar execution
 ```sh
-java -jar openapi-generator.jar generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec
+java -jar .\Library\openapi-generator-cli.jar generate \ 
+  -i Library/swagger.json \
+  -g dart-dio \
+  -o . \
+  --skip-validate-spec \
+  --additional-properties pubName=mavis_client
 ```
 ### Brew package execution
 ```sh
-openapi-generator generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec
+openapi-generator generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=mavis_client
 ```
 And the run the build-runner, following which, fix any remaining errors
