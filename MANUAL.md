@@ -1,7 +1,7 @@
 # Manual
 
 ## Work in progress
-The [script](bin/openai-generator-cli.sh) that should automate the whole procedure (nullifying the need for all the content below).
+The [script](Library/openai-generator-cli.sh) that should automate the whole procedure (nullifying the need for all the content below).
 
 ## Binary installation
 ### Java users
