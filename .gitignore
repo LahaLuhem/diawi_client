@@ -1,3 +1,6 @@
+# Flutter version management
+.fvm/flutter_sdk
+
 # Do not remove or rename entries in this file, only add new ones
 # See https://github.com/flutter/flutter/issues/128635 for more context.
 
