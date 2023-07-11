@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 cd "$(dirname "$0")" || exit
 ####
-# Save as openapi-generator-cli on your PATH. chmod u+x. Enjoy.
-#
-# This script will query github on every invocation to pull the latest released version
-# of openapi-generator.
-#
 # If you want repeatable executions, you can explicitly set a version via
 #    OPENAPI_GENERATOR_VERSION
 # e.g. (in Bash)
@@ -19,19 +14,30 @@ cd "$(dirname "$0")" || exit
 # NOTE: Jars are downloaded on demand from maven into the same directory as this script
 # for every 'latest' version pulled from github. Consider putting this under its own directory.
 ####
+
 set -o pipefail
-env MAVEN_HOME="$(pwd)/apache-maven"
-alias mvn='$(pwd)/apache-maven/bin/mvn'
+maven_version="3.9.3"
+
+env MAVEN_HOME="$(pwd)/apache-maven-$maven_version"
+alias mvn='$(pwd)/apache-maven-$maven_version/bin/mvn'
 alias jq='$(pwd)/jq/jq-win64.exe'
 
 for cmd in {mvn,jq,curl}; do
-  if ! command -v ${cmd} > /dev/null; then
+  if ! command -v "${cmd}" > /dev/null; then
     >&2 echo "This script requires '${cmd}' to be installed."
     read  -n 1 -p "press any button to continue ...`echo $'\n_ '`"
     exit 1
   fi
 done
 
+# Download a fresh maven binary.
+# Repeated use of a local library causes problems due to file-mode changes
+curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o maven.zip
+unzip -o maven.zip
+rm -f maven.zip
+
+# This script will query github on every invocation to pull the latest released version
+# of openapi-generator.
 function latest.tag {
   local uri="https://api.github.com/repos/${1}/releases"
   local ver
@@ -39,39 +45,50 @@ function latest.tag {
   if [[ $ver == v* ]]; then
     ver=${ver:1}
   fi
-  echo $ver
+  echo "$ver"
 }
 
-ghrepo=openapitools/openapi-generator
-groupid=org.openapitools
-artifactid=openapi-generator-cli
-ver=${OPENAPI_GENERATOR_VERSION:-$(latest.tag $ghrepo)}
+gh_repo=openapitools/openapi-generator
+group_id=org.openapitools
+artifact_id=openapi-generator-cli
+ver=${OPENAPI_GENERATOR_VERSION:-$(latest.tag $gh_repo)}
 
-jar=${artifactid}-${ver}.jar
-cachedir=${OPENAPI_GENERATOR_DOWNLOAD_CACHE_DIR}
+jar=${artifact_id}-${ver}.jar
+cache_dir=${OPENAPI_GENERATOR_DOWNLOAD_CACHE_DIR}
 
-DIR=${cachedir:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
+DIR=${cache_dir:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
 
 if [ ! -d "${DIR}" ]; then
   mkdir -p "${DIR}"
 fi
 
-if [ ! -f ${DIR}/${jar} ]; then
+if [ ! -f "${DIR}/${jar}" ]; then
   repo="central::default::https://repo1.maven.org/maven2/"
   if [[ ${ver} =~ ^.*-SNAPSHOT$ ]]; then
       repo="central::default::https://oss.sonatype.org/content/repositories/snapshots"
   fi
   mvn org.apache.maven.plugins:maven-dependency-plugin:2.9:get \
     -DremoteRepositories=${repo} \
-    -Dartifact=${groupid}:${artifactid}:${ver} \
+    -Dartifact="${group_id}:${artifact_id}:${ver}" \
     -Dtransitive=false \
-    -Ddest=${DIR}/${jar}
+    -Ddest="${DIR}/${jar}"
 fi
 
 cd ..
+# shellcheck disable=SC2086
 java -ea                          \
   ${JAVA_OPTS}                    \
   -Xms512M                        \
   -Xmx1024M                       \
   -server                         \
-  -jar ${DIR}/${jar} generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=mavis_client --additional-properties pubLibrary=mavis_client.api
+  -jar "${DIR}/${jar}" generate   \
+      -i Library/swagger.json                       \
+      -g dart-dio                                   \
+      -o .                                          \
+      --skip-validate-spec                          \
+      --additional-properties pubName=mavis_client  \
+      --additional-properties pubLibrary=mavis_client.api
+
+# Cleanup
+rm -rf "$(pwd)/Library/apache-maven-$maven_version/"
+exit 0
