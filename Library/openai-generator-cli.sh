@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd "$(dirname "$0")" || exit
+cd "$(dirname "$0")" || exit 1
 ####
 # If you want repeatable executions, you can explicitly set a version via
 #    OPENAPI_GENERATOR_VERSION
@@ -18,23 +18,33 @@ cd "$(dirname "$0")" || exit
 set -o pipefail
 maven_version="3.9.3"
 
-env MAVEN_HOME="$(pwd)/apache-maven-$maven_version"
-alias mvn='$(pwd)/apache-maven-$maven_version/bin/mvn'
-alias jq='$(pwd)/jq/jq-win64.exe'
+if ! command -v "curl" > /dev/null; then
+  >&2 echo "This script requires 'curl' to be installed."
+  read  -n 1 -p "press any button to continue ...`echo $'\n_ '`"
+  exit 1
+fi
 
-for cmd in {mvn,jq,curl}; do
-  if ! command -v "${cmd}" > /dev/null; then
-    >&2 echo "This script requires '${cmd}' to be installed."
-    read  -n 1 -p "press any button to continue ...`echo $'\n_ '`"
-    exit 1
-  fi
-done
+if ! command -v "mvn" > /dev/null; then
+  >&2 echo "mvn not found, fetching binary"
+  # Download a fresh maven binary.
+  # Repeated use of a local library causes problems due to file-mode changes
+  curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o maven.zip
+  unzip -o maven.zip
+  rm -f maven.zip
 
-# Download a fresh maven binary.
-# Repeated use of a local library causes problems due to file-mode changes
-curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o maven.zip
-unzip -o maven.zip
-rm -f maven.zip
+  # Setup temporary environment for Maven build
+  env MAVEN_HOME="$(pwd)/apache-maven-$maven_version"
+  alias mvn='$(pwd)/apache-maven-$maven_version/bin/mvn'
+fi
+
+if ! command -v "jq" > /dev/null; then
+  >&2 echo "jq not found, using local binary"
+  # Setup temporary environment for jq
+  alias jq='$(pwd)/jq/jq-win64.exe'
+fi
+
+# All required commands should be guaranteed to have a pointer by this stage
+
 
 # This script will query github on every invocation to pull the latest released version
 # of openapi-generator.
