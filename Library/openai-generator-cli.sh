@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+cd "$(dirname "$0")" || exit
 ####
 # Save as openapi-generator-cli on your PATH. chmod u+x. Enjoy.
 #
@@ -19,17 +20,22 @@
 # for every 'latest' version pulled from github. Consider putting this under its own directory.
 ####
 set -o pipefail
+env MAVEN_HOME="$(pwd)/apache-maven"
+alias mvn='$(pwd)/apache-maven/bin/mvn'
+alias jq='$(pwd)/jq/jq-win64.exe'
 
 for cmd in {mvn,jq,curl}; do
   if ! command -v ${cmd} > /dev/null; then
     >&2 echo "This script requires '${cmd}' to be installed."
+    read  -n 1 -p "press any button to continue ...`echo $'\n_ '`"
     exit 1
   fi
 done
 
 function latest.tag {
   local uri="https://api.github.com/repos/${1}/releases"
-  local ver=$(curl -s ${uri} | jq -r 'first(.[]|select(.prerelease==false)).tag_name')
+  local ver
+  ver=$(curl -s "${uri}" | jq -r 'first(.[]|select(.prerelease==false)).tag_name')
   if [[ $ver == v* ]]; then
     ver=${ver:1}
   fi
@@ -62,9 +68,10 @@ if [ ! -f ${DIR}/${jar} ]; then
     -Ddest=${DIR}/${jar}
 fi
 
+cd ..
 java -ea                          \
   ${JAVA_OPTS}                    \
   -Xms512M                        \
   -Xmx1024M                       \
   -server                         \
-  -jar ${DIR}/${jar} "$@"
+  -jar ${DIR}/${jar} generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=mavis_client --additional-properties pubLibrary=mavis_client.api
