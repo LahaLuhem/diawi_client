@@ -84,6 +84,7 @@ if [ ! -f "${DIR}/${jar}" ]; then
     -Ddest="${DIR}/${jar}"
 fi
 
+# Execute JAR generator
 cd ..
 # shellcheck disable=SC2086
 java -ea                          \
@@ -98,6 +99,10 @@ java -ea                          \
       --skip-validate-spec                          \
       --additional-properties pubName=mavis_client  \
       --additional-properties pubLibrary=mavis_client.api
+
+# Get pubspec dependencies and run the build runner
+flutter pub get
+flutter pub run build_runner build --delete-conflicting-outputs
 
 # Cleanup
 rm -rf "$(pwd)/Library/apache-maven-$maven_version/"
