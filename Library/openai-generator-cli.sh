@@ -34,13 +34,13 @@ if ! command -v "mvn" > /dev/null; then
 
   # Setup temporary environment for Maven build
   env MAVEN_HOME="$(pwd)/apache-maven-$maven_version"
-  alias mvn='$(pwd)/apache-maven-$maven_version/bin/mvn'
+  mvn="./apache-maven-$maven_version/bin/mvn"
 fi
 
 if ! command -v "jq" > /dev/null; then
   >&2 echo "jq not found, using local binary"
   # Setup temporary environment for jq
-  alias jq='$(pwd)/jq/jq-win64.exe'
+  jq="./jq/jq-win64.exe"
 fi
 
 # All required commands should be guaranteed to have a pointer by this stage
@@ -51,7 +51,7 @@ fi
 function latest.tag {
   local uri="https://api.github.com/repos/${1}/releases"
   local ver
-  ver=$(curl -s "${uri}" | jq -r 'first(.[]|select(.prerelease==false)).tag_name')
+  ver=$(curl -s "${uri}" | $jq -r 'first(.[]|select(.prerelease==false)).tag_name')
   if [[ $ver == v* ]]; then
     ver=${ver:1}
   fi
@@ -77,7 +77,7 @@ if [ ! -f "${DIR}/${jar}" ]; then
   if [[ ${ver} =~ ^.*-SNAPSHOT$ ]]; then
       repo="central::default::https://oss.sonatype.org/content/repositories/snapshots"
   fi
-  mvn org.apache.maven.plugins:maven-dependency-plugin:2.9:get \
+  $mvn org.apache.maven.plugins:maven-dependency-plugin:2.9:get \
     -DremoteRepositories=${repo} \
     -Dartifact="${group_id}:${artifact_id}:${ver}" \
     -Dtransitive=false \
