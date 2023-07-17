@@ -11,6 +11,7 @@
   * [Execution](#execution)
     + [Jar execution](#jar-execution)
     + [Brew package execution](#brew-package-execution)
+- [Fixing errors](#fixing-errors)
 
 ## Usage
 Use it directly as a git dependency. That way, you get all the latest updates and bug fixes, without having to download the package separately. <br>
@@ -28,6 +29,8 @@ mavis_client:
 ```
 
 ## Client generation
+1. Branch off of `develop`(latest client), with the branch name strictly following the Swagger.json version (Swagger v1.16 -> 1.16).
+2. Follow the remaining steps, and fix the (possible) remaining errors using [this guide](#fixing-errors).
 
 ### Work in progress
 The [script](Library/openai-generator-cli.sh) that should automate the whole procedure (nullifying the need for all the content below).
@@ -60,4 +63,12 @@ java -jar Library/openapi-generator-cli.jar generate -i Library/swagger.json -g 
 ```sh
 openapi-generator generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=mavis_client --additional-properties pubLibrary=mavis_client.api
 ```
-And the run the build-runner, following which, fix any remaining errors
+And the run the build-runner, following which, fix any remaining errors (see [Fixing errors](#fixing-errors) section).
+
+## Fixing errors
+The following is a recorded (and changing) list of errors that are needed to be fixed after the code generation.<br>
+If there is a new error, please create a new tag and add append it. If a tag is no longer an error (fix needs to be reverted), remove it from the list
+| **Tag Name**                  | **Since version** |
+|:-----------------------------:|:-----------------:|
+| MediaInformation.hashCode fix | 1.16              |
+

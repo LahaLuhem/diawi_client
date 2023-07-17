@@ -86,6 +86,12 @@ fi
 
 # Execute JAR generator
 cd ..
+# Cleanup the repo from any previous runs
+rm -rf .openapi-generator/
+rm -rf doc/
+rm -rf lib/
+rm -f .openapi-generator-ignore
+
 # shellcheck disable=SC2086
 java -ea                          \
   ${JAVA_OPTS}                    \
