@@ -29,7 +29,7 @@ if ! command -v "mvn" > /dev/null; then
   # Download a fresh maven binary.
   # Repeated use of a local library causes problems due to file-mode changes
   curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o maven.zip
-  unzip -o maven.zip
+  unzip -o maven.zip || read -pr "No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script"
   rm -f maven.zip
 
   # Setup temporary environment for Maven build
