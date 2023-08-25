@@ -16,7 +16,7 @@ cd "$(dirname "$0")" || exit 1
 ####
 
 set -o pipefail
-maven_version="3.9.3"
+maven_version="3.9.4"
 
 if ! command -v "curl" > /dev/null; then
   >&2 echo "This script requires 'curl' to be installed."
