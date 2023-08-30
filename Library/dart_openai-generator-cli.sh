@@ -19,7 +19,8 @@ set -o pipefail
 maven_version="3.9.4"
 
 client_library_name=$(basename "$(dirname "$PWD")")
-read  -n 1 -pr "The client name will be $client_library_name. Press any key to continue. Press Ctrl+c to stop now."
+read  -n 1 -pr "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+c to stop now."
+temp_download_dir="artifacts"
 
 if ! command -v "curl" > /dev/null; then
   >&2 echo "This script requires 'curl' to be installed."
@@ -31,20 +32,23 @@ if ! command -v "mvn" > /dev/null; then
   >&2 echo "mvn not found, fetching binary"
   # Download a fresh maven binary.
   # Repeated use of a local library causes problems due to file-mode changes
-  curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o maven.zip
+  curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o $temp_download_dir/maven.zip --create-dirs
+
+  cd $temp_download_dir || exit 1
   unzip -o maven.zip || read -pr "No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script"
-  rm -f maven.zip
+  cd ..
+  rm -f $temp_download_dir/maven.zip
 
   # Setup temporary environment for Maven build
-  env MAVEN_HOME="$(pwd)/apache-maven-$maven_version"
-  mvn="./apache-maven-$maven_version/bin/mvn"
+  env MAVEN_HOME="$(pwd)/$temp_download_dir/apache-maven-$maven_version"
+  mvn="./$temp_download_dir/apache-maven-$maven_version/bin/mvn"
 fi
 
 if ! command -v "jq" > /dev/null; then
   >&2 echo "jq not found, fetching binary"
-  curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o artifacts/jq-win64.exe --create-dirs
+  curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
   # Setup temporary environment for jq
-  jq="./artifacts/jq-win64.exe"
+  jq="./$temp_download_dir/jq-win64.exe"
 fi
 
 # All required commands should be guaranteed to have a pointer by this stage
@@ -115,6 +119,6 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 
 # Cleanup
-rm -rf "$(pwd)/Library/apache-maven-$maven_version/"
 rm -rf "$(pwd)/Library/artifacts/"
+find "$(pwd)/Library" -name "*.jar" -type f -delete
 exit 0

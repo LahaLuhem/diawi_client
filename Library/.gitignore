@@ -1,1 +1,4 @@
 *.jar
+
+apache-maven-*/
+artifacts/

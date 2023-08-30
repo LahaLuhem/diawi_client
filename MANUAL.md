@@ -33,10 +33,10 @@ mavis_client:
 2. Follow the remaining steps, and fix the (possible) remaining errors using [this guide](#fixing-errors).
 
 ### Work in progress
-The [script](Library/openai-generator-cli.sh) that should automate the whole procedure (nullifying the need for all the content below).
+The [script](Library/dart_openai-generator-cli.sh) that should automate the whole procedure (nullifying the need for all the content below).
 
 1. Download the generation reference file, following the instructions in (this section)[#backend--swaggerjson--file].
-2. Run the 'Generate client' configuration. You can also run the [script](Library/openai-generator-cli.sh) directly.
+2. Run the 'Generate client' configuration. You can also run the [script](Library/dart_openai-generator-cli.sh) directly.
 
 In case of failure of the above script and urgency, use the manual generation steps below.
 
