@@ -19,12 +19,12 @@ set -o pipefail
 maven_version="3.9.4"
 
 client_library_name=$(basename "$(dirname "$PWD")")
-read  -n 1 -pr "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+c to stop now."
+read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
 temp_download_dir="artifacts"
 
 if ! command -v "curl" > /dev/null; then
   >&2 echo "This script requires 'curl' to be installed."
-  read  -n 1 -p "press any button to continue ...`echo $'\n_ '`"
+  read -n 1 -p "press any button to continue ...$(echo $'\n_ ')"
   exit 1
 fi
 
@@ -35,7 +35,7 @@ if ! command -v "mvn" > /dev/null; then
   curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o $temp_download_dir/maven.zip --create-dirs
 
   cd $temp_download_dir || exit 1
-  unzip -o maven.zip || read -pr "No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script"
+  unzip -o maven.zip || read -pr "$(echo $'\n')No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script$(echo $'\n_ ')"
   cd ..
   rm -f $temp_download_dir/maven.zip
 
@@ -95,10 +95,9 @@ fi
 # Execute JAR generator
 cd ..
 # Cleanup the repo from any previous runs
-rm -rf .openapi-generator/
-rm -rf doc/
-rm -rf lib/
-rm -f .openapi-generator-ignore
+rm -rf docs/
+rm -rf src/
+rm -rf test/
 
 # shellcheck disable=SC2086
 java -ea                          \
@@ -107,16 +106,11 @@ java -ea                          \
   -Xmx1024M                       \
   -server                         \
   -jar "${DIR}/${jar}" generate   \
-      -i Library/swagger.json                       \
-      -g dart-dio                                   \
-      -o .                                          \
-      --skip-validate-spec                          \
-      --additional-properties pubName=${client_library_name}  \
-      --additional-properties pubLibrary=${client_library_name}.api
-
-# Get pubspec dependencies and run the build runner
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
+      -i Library/swagger.json                   \
+      -g python                                 \
+      -o .                                      \
+      --skip-validate-spec                      \
+      --additional-properties packageName=src
 
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
