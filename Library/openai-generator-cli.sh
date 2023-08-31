@@ -18,6 +18,9 @@ cd "$(dirname "$0")" || exit 1
 set -o pipefail
 maven_version="3.9.4"
 
+client_library_name=$(basename "$(dirname "$PWD")")
+read  -n 1 -pr "The client name will be $client_library_name. Press any key to continue. Press Ctrl+c to stop now."
+
 if ! command -v "curl" > /dev/null; then
   >&2 echo "This script requires 'curl' to be installed."
   read  -n 1 -p "press any button to continue ...`echo $'\n_ '`"
@@ -38,9 +41,10 @@ if ! command -v "mvn" > /dev/null; then
 fi
 
 if ! command -v "jq" > /dev/null; then
-  >&2 echo "jq not found, using local binary"
+  >&2 echo "jq not found, fetching binary"
+  curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o artifacts/jq-win64.exe --create-dirs
   # Setup temporary environment for jq
-  jq="./jq/jq-win64.exe"
+  jq="./artifacts/jq-win64.exe"
 fi
 
 # All required commands should be guaranteed to have a pointer by this stage
@@ -103,13 +107,14 @@ java -ea                          \
       -g dart-dio                                   \
       -o .                                          \
       --skip-validate-spec                          \
-      --additional-properties pubName=mavis_client  \
-      --additional-properties pubLibrary=mavis_client.api
+      --additional-properties pubName=${client_library_name}  \
+      --additional-properties pubLibrary=${client_library_name}.api
 
 # Get pubspec dependencies and run the build runner
 flutter pub get
-flutter pub run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs
 
 # Cleanup
 rm -rf "$(pwd)/Library/apache-maven-$maven_version/"
+rm -rf "$(pwd)/Library/artifacts/"
 exit 0
