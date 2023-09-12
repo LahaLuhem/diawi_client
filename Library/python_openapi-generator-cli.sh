@@ -96,7 +96,7 @@ fi
 cd ..
 # Cleanup the repo from any previous runs
 rm -rf docs/
-rm -rf src/
+rm -rf "${client_library_name}.src/"
 rm -rf test/
 
 # shellcheck disable=SC2086
@@ -110,7 +110,7 @@ java -ea                          \
       -g python                                 \
       -o .                                      \
       --skip-validate-spec                      \
-      --additional-properties packageName=src
+      --additional-properties packageName="${client_library_name}.src"
 
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
