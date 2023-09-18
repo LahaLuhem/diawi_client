@@ -18,7 +18,8 @@ cd "$(dirname "$0")" || exit 1
 set -o pipefail
 maven_version="3.9.4"
 
-client_library_name=$(basename "$(dirname "$PWD")")
+# Converting snake_case lib-name to C# conventional PascalCase
+client_library_name=$(basename "$(dirname "$PWD")" | sed -r 's/(^|_)([a-z])/\U\2/g')
 read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
 temp_download_dir="artifacts"
 
@@ -114,22 +115,22 @@ java -ea                          \
   -Xmx1024M                       \
   -server                         \
   -jar "${DIR}/${jar}" generate   \
-      -i Library/swagger.json                                     \
-      -g csharp                                                   \
-      -o .                                                        \
-      --skip-validate-spec                                        \
-      --additional-properties allowUnicodeIdentifiers=true        \
-      --additional-properties apiName=Api                         \
-      --additional-properties apiName=restsharp                   \
-      --additional-properties modelPropertyNaming=PascalCase      \
-      --additional-properties netCoreProjectFile=true             \
-      --additional-properties nonPublicApi=true                   \
-      --additional-properties optionalProjectFile=MavisClient     \
-      --additional-properties packageName=Dimerce.MavisClient     \
-      --additional-properties returnICollection=true              \
-      --additional-properties targetFramework=net6.0              \
-      --additional-properties useCollection=true                  \
-      --additional-properties useDateTimeOffset=true              \
+      -i Library/swagger.json                                                 \
+      -g csharp                                                               \
+      -o .                                                                    \
+      --skip-validate-spec                                                    \
+      --additional-properties allowUnicodeIdentifiers=true                    \
+      --additional-properties apiName=Api                                     \
+      --additional-properties apiName=restsharp                               \
+      --additional-properties modelPropertyNaming=PascalCase                  \
+      --additional-properties netCoreProjectFile=true                         \
+      --additional-properties nonPublicApi=true                               \
+      --additional-properties optionalProjectFile="${client_library_name}"    \
+      --additional-properties packageName="Dimerce.${client_library_name}"    \
+      --additional-properties returnICollection=true                          \
+      --additional-properties targetFramework=net6.0                          \
+      --additional-properties useCollection=true                              \
+      --additional-properties useDateTimeOffset=true                          \
       --additional-properties validatable=true
 
 # Cleanup
