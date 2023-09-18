@@ -95,9 +95,17 @@ fi
 # Execute JAR generator
 cd ..
 # Cleanup the repo from any previous runs
+rm -rf .openapi-generator/
+rm -rf api/
 rm -rf docs/
 rm -rf src/
 rm -rf test/
+rm -f .openapi-generator-ignore
+rm -f ./.*.yml
+rm -f ./*.sln
+rm -f git_push.sh
+rm -f README.md
+
 
 # shellcheck disable=SC2086
 java -ea                          \

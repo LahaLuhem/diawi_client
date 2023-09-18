@@ -92,12 +92,23 @@ if [ ! -f "${DIR}/${jar}" ]; then
     -Ddest="${DIR}/${jar}"
 fi
 
-# Execute JAR generator
+ # Execute JAR generator
 cd ..
 # Cleanup the repo from any previous runs
+rm -rf .github/
+rm -rf .openapi-generator/
 rm -rf docs/
-rm -rf "${client_library_name}.src/"
+rm -rf gen/
+rm -rf "${client_library_name}"
 rm -rf test/
+rm -f .openapi-generator-ignore
+rm -f ./.*.yml
+rm -f git_push.sh
+rm -f pyproject.toml
+rm -f ./*requirements.txt
+rm -f ./setup.*
+rm -f tox.ini
+rm -f README.md
 
 # shellcheck disable=SC2086
 java -ea                          \
