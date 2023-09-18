@@ -137,5 +137,10 @@ java -ea                          \
 rm -rf "$(pwd)/Library/artifacts/"
 find "$(pwd)/Library" -name "*.jar" -type f -delete
 
+# Installing packages
+echo "Installing packages using Nuget . . ."
+cd "src/Dimerce.${client_library_name}/" || exit 1
+dotnet add package InternalsVisibleTo.MSBuild
+
 read -n 1 -p "GENERATION DONE!. Press any key to exit..."
 exit 0
