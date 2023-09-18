@@ -19,7 +19,7 @@ set -o pipefail
 maven_version="3.9.4"
 
 client_library_name=$(basename "$(dirname "$PWD")")
-read  -n 1 -pr "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+c to stop now."
+read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
 temp_download_dir="artifacts"
 
 if ! command -v "curl" > /dev/null; then
@@ -98,7 +98,11 @@ cd ..
 rm -rf .openapi-generator/
 rm -rf doc/
 rm -rf lib/
+rm -rf test/
 rm -f .openapi-generator-ignore
+rm -f ./*.yaml
+rm -f README.md
+rm -f pubspec.lock
 
 # shellcheck disable=SC2086
 java -ea                          \
