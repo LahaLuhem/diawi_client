@@ -124,7 +124,8 @@ java -ea                          \
       --additional-properties apiName=restsharp                               \
       --additional-properties modelPropertyNaming=PascalCase                  \
       --additional-properties netCoreProjectFile=true                         \
-      --additional-properties nonPublicApi=true                               \
+      --additional-properties nonPublicApi=false                              \
+      --additional-properties nullableReferenceTypes=true                     \
       --additional-properties optionalProjectFile="${client_library_name}"    \
       --additional-properties packageName="Dimerce.${client_library_name}"    \
       --additional-properties returnICollection=true                          \
@@ -132,7 +133,6 @@ java -ea                          \
       --additional-properties useCollection=true                              \
       --additional-properties useDateTimeOffset=true                          \
       --additional-properties validatable=true
-
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
 find "$(pwd)/Library" -name "*.jar" -type f -delete
