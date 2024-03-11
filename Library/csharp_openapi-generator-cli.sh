@@ -102,7 +102,7 @@ rm -rf docs/
 rm -rf src/
 rm -rf test/
 rm -f .openapi-generator-ignore
-rm -f ./.*.yml
+rm -f appveyor.yml
 rm -f ./*.sln
 rm -f git_push.sh
 rm -f README.md
@@ -119,13 +119,16 @@ java -ea                          \
       -g csharp                                                               \
       -o .                                                                    \
       --skip-validate-spec                                                    \
-      --additional-properties allowUnicodeIdentifiers=true                    \
-      --additional-properties apiName=Api                                     \
-      --additional-properties apiName=restsharp                               \
+      --additional-properties allowUnicodeIdentifiers=false                   \
+      --additional-properties library=httpclient                              \
       --additional-properties modelPropertyNaming=PascalCase                  \
       --additional-properties netCoreProjectFile=true                         \
       --additional-properties nonPublicApi=false                              \
       --additional-properties nullableReferenceTypes=true                     \
+      --additional-properties returnICollection=true                          \
+      --additional-properties zeroBasedEnums=true                             \
+      --additional-properties optionalMethodArgument=false                    \
+      --additional-properties disallowAdditionalPropertiesIfNotPresent=false  \
       --additional-properties optionalProjectFile="${client_library_name}"    \
       --additional-properties packageName="Dimerce.${client_library_name}"    \
       --additional-properties returnICollection=true                          \
@@ -133,6 +136,7 @@ java -ea                          \
       --additional-properties useCollection=true                              \
       --additional-properties useDateTimeOffset=true                          \
       --additional-properties validatable=true
+
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
 find "$(pwd)/Library" -name "*.jar" -type f -delete
