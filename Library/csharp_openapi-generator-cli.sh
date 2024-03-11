@@ -129,6 +129,7 @@ java -ea                          \
       --additional-properties zeroBasedEnums=true                             \
       --additional-properties optionalMethodArgument=false                    \
       --additional-properties disallowAdditionalPropertiesIfNotPresent=false  \
+	  --additional-properties packageVersion=1.15                             \
       --additional-properties optionalProjectFile="${client_library_name}"    \
       --additional-properties packageName="Dimerce.${client_library_name}"    \
       --additional-properties returnICollection=true                          \
