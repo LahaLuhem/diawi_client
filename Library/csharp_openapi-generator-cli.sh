@@ -2,12 +2,11 @@
 cd "$(dirname "$0")" || exit 1
 ####
 # If you want repeatable executions, you can explicitly set a version via
-#    OPENAPI_GENERATOR_VERSION
+#    NSWAG_GENERATOR_VERSION
 # e.g. (in Bash)
-#    export OPENAPI_GENERATOR_VERSION=3.1.0
-#    openapi-generator-cli.sh
+#    export NSWAG_GENERATOR_VERSION=3.1.0
 # or
-#    OPENAPI_GENERATOR_VERSION=3.1.0 openapi-generator-cli.sh
+#    NSWAG_GENERATOR_VERSION=3.1.0 openapi-generator-cli.sh
 #
 # This is also helpful, for example, if you want to evaluate a SNAPSHOT version.
 #
@@ -16,136 +15,123 @@ cd "$(dirname "$0")" || exit 1
 ####
 
 set -o pipefail
-maven_version="3.9.4"
 
 # Converting snake_case lib-name to C# conventional PascalCase
-client_library_name=$(basename "$(dirname "$PWD")" | sed -r 's/(^|_)([a-z])/\U\2/g')
+client_library_name=$( basename "$(dirname "$PWD")" | tr '[:upper:]' '[:lower:]' | tr -c '[:alnum:]' ' ' | awk '{ for (i=1; i<=NF; i++) { $i=toupper(substr($i,1,1)) substr($i,2) } print }' | tr -d ' ' )
 read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
-temp_download_dir="artifacts"
 
-if ! command -v "curl" > /dev/null; then
-  >&2 echo "This script requires 'curl' to be installed."
+if ! command -v "npm" > /dev/null; then
+  >&2 echo "This script requires 'npm' to be installed."
   read -n 1 -p "press any button to continue ...$(echo $'\n_ ')"
   exit 1
 fi
 
-if ! command -v "mvn" > /dev/null; then
-  >&2 echo "mvn not found, fetching binary"
-  # Download a fresh maven binary.
-  # Repeated use of a local library causes problems due to file-mode changes
-  curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o $temp_download_dir/maven.zip --create-dirs
+# Install CLI through NPM
+npm install nswag -g
 
-  cd $temp_download_dir || exit 1
-  unzip -o maven.zip || read -pr "$(echo $'\n')No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script$(echo $'\n_ ')"
-  cd ..
-  rm -f $temp_download_dir/maven.zip
-
-  # Setup temporary environment for Maven build
-  env MAVEN_HOME="$(pwd)/$temp_download_dir/apache-maven-$maven_version"
-  mvn="./$temp_download_dir/apache-maven-$maven_version/bin/mvn"
-fi
-
-if ! command -v "jq" > /dev/null; then
-  >&2 echo "jq not found, fetching binary"
-  curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
-  # Setup temporary environment for jq
-  jq="./$temp_download_dir/jq-win64.exe"
-fi
-
-# All required commands should be guaranteed to have a pointer by this stage
-
-
-# This script will query github on every invocation to pull the latest released version
-# of openapi-generator.
-function latest.tag {
-  local uri="https://api.github.com/repos/${1}/releases"
-  local ver
-  ver=$(curl -s "${uri}" | $jq -r 'first(.[]|select(.prerelease==false)).tag_name')
-  if [[ $ver == v* ]]; then
-    ver=${ver:1}
-  fi
-  echo "$ver"
-}
-
-gh_repo=openapitools/openapi-generator
-group_id=org.openapitools
-artifact_id=openapi-generator-cli
-ver=${OPENAPI_GENERATOR_VERSION:-$(latest.tag $gh_repo)}
-
-jar=${artifact_id}-${ver}.jar
-cache_dir=${OPENAPI_GENERATOR_DOWNLOAD_CACHE_DIR}
-
-DIR=${cache_dir:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
-
-if [ ! -d "${DIR}" ]; then
-  mkdir -p "${DIR}"
-fi
-
-if [ ! -f "${DIR}/${jar}" ]; then
-  repo="central::default::https://repo1.maven.org/maven2/"
-  if [[ ${ver} =~ ^.*-SNAPSHOT$ ]]; then
-      repo="central::default::https://oss.sonatype.org/content/repositories/snapshots"
-  fi
-  $mvn org.apache.maven.plugins:maven-dependency-plugin:2.9:get \
-    -DremoteRepositories=${repo} \
-    -Dartifact="${group_id}:${artifact_id}:${ver}" \
-    -Dtransitive=false \
-    -Ddest="${DIR}/${jar}"
-fi
-
-# Execute JAR generator
 cd ..
 # Cleanup the repo from any previous runs
-rm -rf .openapi-generator/
-rm -rf api/
-rm -rf docs/
 rm -rf src/
-rm -rf test/
-rm -f .openapi-generator-ignore
-rm -f appveyor.yml
-rm -f ./*.sln
-rm -f git_push.sh
-rm -f README.md
 
-
-# shellcheck disable=SC2086
-java -ea                          \
-  ${JAVA_OPTS}                    \
-  -Xms512M                        \
-  -Xmx1024M                       \
-  -server                         \
-  -jar "${DIR}/${jar}" generate   \
-      -i Library/swagger.json                                                 \
-      -g csharp                                                               \
-      -o .                                                                    \
-      --skip-validate-spec                                                    \
-      --additional-properties allowUnicodeIdentifiers=false                   \
-      --additional-properties library=httpclient                              \
-      --additional-properties modelPropertyNaming=PascalCase                  \
-      --additional-properties netCoreProjectFile=true                         \
-      --additional-properties nonPublicApi=false                              \
-      --additional-properties nullableReferenceTypes=true                     \
-      --additional-properties returnICollection=true                          \
-      --additional-properties zeroBasedEnums=true                             \
-      --additional-properties optionalMethodArgument=false                    \
-      --additional-properties disallowAdditionalPropertiesIfNotPresent=false  \
-	  --additional-properties packageVersion=1.15                             \
-      --additional-properties optionalProjectFile="${client_library_name}"    \
-      --additional-properties packageName="Dimerce.${client_library_name}"    \
-      --additional-properties returnICollection=true                          \
-      --additional-properties targetFramework=net6.0                          \
-      --additional-properties useCollection=true                              \
-      --additional-properties useDateTimeOffset=true                          \
-      --additional-properties validatable=true
+# Execute NSwag generator
+nswag openapi2csclient                                                        \
+  /input:Library/swagger.json                                                 \
+  /output:"src/Dimerce.${client_library_name}/${client_library_name}.cs"      \
+  /clientBaseClass:"MavisBaseClient"                                          \
+  /configurationClass:"MavisClientConfiguration"                              \
+  /generateClientClasses:true                                                 \
+  /suppressClientClassesOutput:false                                          \
+  /generateClientInterfaces:true                                              \
+  /suppressClientInterfacesOutput:false                                       \
+  /clientBaseInterface:null                                                   \
+  /injectHttpClient:false                                                     \
+  /disposeHttpClient:true                                                     \
+  /protectedMethods:[]                                                        \
+  /generateExceptionClasses:true                                              \
+  /exceptionClass:"ApiException"                                              \
+  /wrapDtoExceptions:true                                                     \
+  /useHttpClientCreationMethod:false                                          \
+  /httpClientType:"System.Net.Http.HttpClient"                                \
+  /useHttpRequestMessageCreationMethod:false                                  \
+  /usebaseurl:true                                                            \
+  /generateBaseUrlProperty:true                                               \
+  /generateSyncMethods:false                                                  \
+  /generatePrepareRequestAndProcessResponseAsAsyncMethods:false               \
+  /exposeJsonSerializerSettings:false                                         \
+  /clientClassAccessModifier:"public"                                         \
+  /typeAccessModifier:"public"                                                \
+  /propertySetterAccessModifier:""                                            \
+  /generateNativeRecords:false                                                \
+  /generateContractsOutput:false                                              \
+  /contractsNamespace:null                                                    \
+  /contractsOutputFilePath:null                                               \
+  /parameterDateTimeFormat:"s"                                                \
+  /parameterDateFormat:"yyyy-MM-dd"                                           \
+  /generateUpdateJsonSerializerSettingsMethod:true                            \
+  /useRequestAndResponseSerializationSettings:false                           \
+  /serializeTypeInformation:false                                             \
+  /queryNullValue:""                                                          \
+  /className:"{controller}Client"                                             \
+  /operationGenerationMode:"MultipleClientsFromOperationId"                   \
+  /additionalNamespaceUsages:[]                                               \
+  /additionalContractNamespaceUsages:[]                                       \
+  /generateOptionalParameters:false                                           \
+  /generateJsonMethods:false                                                  \
+  /enforceFlagEnums:false                                                     \
+  /parameterArrayType:"System.Collections.Generic.IEnumerable"                \
+  /parameterDictionaryType:"System.Collections.Generic.IDictionary"           \
+  /responseArrayType:"System.Collections.Generic.ICollection"                 \
+  /responseDictionaryType:"System.Collections.Generic.IDictionary"            \
+  /wrapResponses:false                                                        \
+  /wrapResponseMethods:[]                                                     \
+  /generateResponseClasses:true                                               \
+  /responseClass:"SwaggerResponse"                                            \
+  /namespace:"Dimerce.Plugin.Misc.Core.Services.ErpSystems.Mavis.ClientMavis" \
+  /requiredPropertiesMustBeDefined:true                                       \
+  /dateType:"System.DateTimeOffset"                                           \
+  /jsonConverters:null                                                        \
+  /anyType:"object"                                                           \
+  /dateTimeType:"System.DateTimeOffset"                                       \
+  /timeType:"System.TimeSpan"                                                 \
+  /timeSpanType:"System.TimeSpan"                                             \
+  /arrayType:"System.Collections.Generic.ICollection"                         \
+  /arrayInstanceType:"System.Collections.ObjectModel.Collection"              \
+  /dictionaryType:"System.Collections.Generic.IDictionary"                    \
+  /dictionaryInstanceType:"System.Collections.Generic.Dictionary"             \
+  /arrayBaseType:"System.Collections.ObjectModel.Collection"                  \
+  /dictionaryBaseType:"System.Collections.Generic.Dictionary"                 \
+  /classstyle:"Record"                                                        \
+  /jsonLibrary:"NewtonsoftJson"                                               \
+  /generateDefaultValues:true                                                 \
+  /generateDataAnnotations:true                                               \
+  /excludedTypeNames:[]                                                       \
+  /excludedParameterNames:[]                                                  \
+  /handleReferences:false                                                     \
+  /generateImmutableArrayProperties:false                                     \
+  /generateImmutableDictionaryProperties:false                                \
+  /jsonSerializerSettingsTransformationMethod:null                            \
+  /inlineNamedArrays:false                                                    \
+  /inlineNamedDictionaries:false                                              \
+  /inlineNamedTuples:true                                                     \
+  /inlineNamedAny:false                                                       \
+  /generateDtoTypes:true                                                      \
+  /generateOptionalPropertiesAsNullable:true                                  \
+  /generateNullableReferenceTypes:true                                        \
+  /templateDirectory:null                                                     \
+  /serviceHost:null                                                           \
+  /serviceSchemes:null                                                        \
+  /output:null                                                                \
+  /newLineBehavior:"Auto"
 
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
 find "$(pwd)/Library" -name "*.jar" -type f -delete
+npm uninstall nswag -g
 
 # Installing packages
 echo "Installing packages using Nuget . . ."
 cd "src/Dimerce.${client_library_name}/" || exit 1
-dotnet add package InternalsVisibleTo.MSBuild
+# dotnet add package InternalsVisibleTo.MSBuild
 
 read -n 1 -p "GENERATION DONE!. Press any key to exit..."
 exit 0
