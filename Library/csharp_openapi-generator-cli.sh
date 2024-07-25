@@ -87,7 +87,6 @@ nswag openapi2csclient                                                        \
   /namespace:"Dimerce.${client_library_name}"                                 \
   /requiredPropertiesMustBeDefined:true                                       \
   /dateType:"System.DateTimeOffset"                                           \
-  /jsonConverters:null                                                        \
   /anyType:"object"                                                           \
   /dateTimeType:"System.DateTimeOffset"                                       \
   /timeType:"System.TimeSpan"                                                 \
@@ -107,7 +106,6 @@ nswag openapi2csclient                                                        \
   /handleReferences:false                                                     \
   /generateImmutableArrayProperties:false                                     \
   /generateImmutableDictionaryProperties:false                                \
-  /jsonSerializerSettingsTransformationMethod:null                            \
   /inlineNamedArrays:false                                                    \
   /inlineNamedDictionaries:false                                              \
   /inlineNamedTuples:true                                                     \
@@ -123,6 +121,7 @@ echo "Generating base client DONE"
 
 # Copy project skeleton
 echo "Generating project structure ..."
+cp Library/resources/csharp/Dimerce.MavisClient.sln "./Dimerce.${client_library_name}.sln"
 cp Library/resources/csharp/Dimerce.MavisClient.csproj "src/Dimerce.${client_library_name}/Dimerce.${client_library_name}.csproj"
 cp Library/resources/csharp/MavisBaseClient.cs "src/Dimerce.${client_library_name}/MavisBaseClient.cs"
 cp "Library/resources/csharp/${client_library_name}Configuration.cs" "src/Dimerce.${client_library_name}/${client_library_name}Configuration.cs"
@@ -139,5 +138,6 @@ npm uninstall nswag -g
 # cd "src/Dimerce.${client_library_name}/" || exit 1
 # dotnet add package InternalsVisibleTo.MSBuild
 
-read -n 1 -p "GENERATION DONE!. Press any key to exit..."
+echo "Generation DONE! \"Library/resources\" can be removed."
+read -n 1 -p "Press any key to exit..."
 exit 0
