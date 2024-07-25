@@ -20,9 +20,9 @@ deploy:
     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/csharp$/'
     - if: '$CI_COMMIT_BRANCH == "latest/csharp"'
   before_script: iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) }"
-  script: dotnet pack src/Dimerce.MavisClient/Dimerce.MavisClient.csproj -c Release
-          dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name $CI_COMMIT_BRANCH --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
-          dotnet nuget push "src\Dimerce.MavisClient\bin\Release\*.nupkg" --source $CI_COMMIT_BRANCH
+  script: dotnet pack src/Dimerce.MavisClient/Dimerce.MavisClient.csproj -c Release;
+          dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name $CI_COMMIT_BRANCH --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text;
+          dotnet nuget push "src\Dimerce.MavisClient\bin\Release\*.nupkg" --source $CI_COMMIT_BRANCH;
 
 sast:
   stage: test
