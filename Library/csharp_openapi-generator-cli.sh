@@ -44,7 +44,6 @@ nswag openapi2csclient                                                        \
   /suppressClientClassesOutput:false                                          \
   /generateClientInterfaces:true                                              \
   /suppressClientInterfacesOutput:false                                       \
-  /clientBaseInterface:null                                                   \
   /injectHttpClient:false                                                     \
   /disposeHttpClient:true                                                     \
   /protectedMethods:[]                                                        \
@@ -73,7 +72,6 @@ nswag openapi2csclient                                                        \
   /queryNullValue:""                                                          \
   /className:"{controller}Client"                                             \
   /operationGenerationMode:"MultipleClientsFromOperationId"                   \
-  /additionalNamespaceUsages:[]                                               \
   /additionalContractNamespaceUsages:[]                                       \
   /generateOptionalParameters:false                                           \
   /generateJsonMethods:false                                                  \
