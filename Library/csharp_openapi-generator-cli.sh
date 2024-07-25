@@ -84,7 +84,7 @@ nswag openapi2csclient                                                        \
   /wrapResponseMethods:[]                                                     \
   /generateResponseClasses:true                                               \
   /responseClass:"SwaggerResponse"                                            \
-  /namespace:"Dimerce.Plugin.Misc.Core.Services.ErpSystems.Mavis.ClientMavis" \
+  /namespace:"Dimerce.${client_library_name}"                                 \
   /requiredPropertiesMustBeDefined:true                                       \
   /dateType:"System.DateTimeOffset"                                           \
   /jsonConverters:null                                                        \
@@ -123,7 +123,10 @@ echo "Generating base client DONE"
 
 # Copy project skeleton
 echo "Generating project structure ..."
-cp Library/resources/csharp/Dimerce.CombipacClient.csproj "src/Dimerce.${client_library_name}/Dimerce.CombipacClient.csproj"
+cp Library/resources/csharp/Dimerce.MavisClient.csproj "src/Dimerce.${client_library_name}/Dimerce.${client_library_name}.csproj"
+cp Library/resources/csharp/MavisBaseClient.cs "src/Dimerce.${client_library_name}/MavisBaseClient.cs"
+cp "Library/resources/csharp/${client_library_name}Configuration.cs" "src/Dimerce.${client_library_name}/${client_library_name}Configuration.cs"
+cp Library/resources/csharp/IConfigService.cs "src/Dimerce.${client_library_name}/IConfigService.cs"
 echo "Generating project structure DONE"
 
 # Cleanup
