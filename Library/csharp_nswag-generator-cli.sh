@@ -46,7 +46,6 @@ nswag openapi2csclient                                                        \
   /suppressClientInterfacesOutput:false                                       \
   /injectHttpClient:false                                                     \
   /disposeHttpClient:true                                                     \
-  /protectedMethods:[]                                                        \
   /generateExceptionClasses:true                                              \
   /exceptionClass:"ApiException"                                              \
   /wrapDtoExceptions:true                                                     \
@@ -63,7 +62,6 @@ nswag openapi2csclient                                                        \
   /propertySetterAccessModifier:""                                            \
   /generateNativeRecords:false                                                \
   /generateContractsOutput:false                                              \
-  /contractsNamespace:null                                                    \
   /parameterDateTimeFormat:"s"                                                \
   /parameterDateFormat:"yyyy-MM-dd"                                           \
   /generateUpdateJsonSerializerSettingsMethod:true                            \
@@ -71,8 +69,7 @@ nswag openapi2csclient                                                        \
   /serializeTypeInformation:false                                             \
   /queryNullValue:""                                                          \
   /className:"{controller}Client"                                             \
-  /operationGenerationMode:"MultipleClientsFromOperationId"                   \
-  /additionalContractNamespaceUsages:[]                                       \
+  /operationGenerationMode:"SingleClientFromOperationId"                      \
   /generateOptionalParameters:false                                           \
   /generateJsonMethods:false                                                  \
   /enforceFlagEnums:false                                                     \
@@ -81,7 +78,6 @@ nswag openapi2csclient                                                        \
   /responseArrayType:"System.Collections.Generic.ICollection"                 \
   /responseDictionaryType:"System.Collections.Generic.IDictionary"            \
   /wrapResponses:false                                                        \
-  /wrapResponseMethods:[]                                                     \
   /generateResponseClasses:true                                               \
   /responseClass:"SwaggerResponse"                                            \
   /namespace:"Dimerce.${client_library_name}"                                 \
@@ -101,8 +97,6 @@ nswag openapi2csclient                                                        \
   /jsonLibrary:"NewtonsoftJson"                                               \
   /generateDefaultValues:true                                                 \
   /generateDataAnnotations:true                                               \
-  /excludedTypeNames:[]                                                       \
-  /excludedParameterNames:[]                                                  \
   /handleReferences:false                                                     \
   /generateImmutableArrayProperties:false                                     \
   /generateImmutableDictionaryProperties:false                                \
@@ -113,8 +107,6 @@ nswag openapi2csclient                                                        \
   /generateDtoTypes:true                                                      \
   /generateOptionalPropertiesAsNullable:true                                  \
   /generateNullableReferenceTypes:true                                        \
-  /templateDirectory:null                                                     \
-  /serviceHost:null                                                           \
   /newLineBehavior:"Auto"
 
 echo "Generating base client DONE"

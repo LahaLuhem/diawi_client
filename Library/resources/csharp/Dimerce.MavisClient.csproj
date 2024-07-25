@@ -4,7 +4,7 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <PackageId>Dimerce.MavisClient</PackageId>
-        <Version>1.22.5</Version>
+        <Version>1.16.0</Version>
         <Authors>Dimerce.Team</Authors>
         <Company>Dimerce</Company>
     </PropertyGroup>
