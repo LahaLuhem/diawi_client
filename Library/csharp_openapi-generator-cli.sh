@@ -64,7 +64,6 @@ nswag openapi2csclient                                                        \
   /generateNativeRecords:false                                                \
   /generateContractsOutput:false                                              \
   /contractsNamespace:null                                                    \
-  /contractsOutputFilePath:null                                               \
   /parameterDateTimeFormat:"s"                                                \
   /parameterDateFormat:"yyyy-MM-dd"                                           \
   /generateUpdateJsonSerializerSettingsMethod:true                            \
@@ -119,8 +118,6 @@ nswag openapi2csclient                                                        \
   /generateNullableReferenceTypes:true                                        \
   /templateDirectory:null                                                     \
   /serviceHost:null                                                           \
-  /serviceSchemes:null                                                        \
-  /output:null                                                                \
   /newLineBehavior:"Auto"
 
 # Cleanup
