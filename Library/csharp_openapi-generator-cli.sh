@@ -34,6 +34,7 @@ cd ..
 rm -rf src/
 
 # Execute NSwag generator
+echo "Generating base client ..."
 nswag openapi2csclient                                                        \
   /input:Library/swagger.json                                                 \
   /output:"src/Dimerce.${client_library_name}/${client_library_name}.cs"      \
@@ -120,14 +121,21 @@ nswag openapi2csclient                                                        \
   /serviceHost:null                                                           \
   /newLineBehavior:"Auto"
 
+echo "Generating base client DONE"
+
+# Copy project skeleton
+echo "Generating project structure ..."
+cp Library/resources/csharp/Dimerce.CombipacClient.csproj "src/Dimerce.${client_library_name}/Dimerce.CombipacClient.csproj"
+echo "Generating project structure DONE"
+
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
 find "$(pwd)/Library" -name "*.jar" -type f -delete
 npm uninstall nswag -g
 
-# Installing packages
-echo "Installing packages using Nuget . . ."
-cd "src/Dimerce.${client_library_name}/" || exit 1
+# # Installing packages
+# echo "Installing packages using Nuget . . ."
+# cd "src/Dimerce.${client_library_name}/" || exit 1
 # dotnet add package InternalsVisibleTo.MSBuild
 
 read -n 1 -p "GENERATION DONE!. Press any key to exit..."
