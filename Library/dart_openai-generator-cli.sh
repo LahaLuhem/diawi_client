@@ -122,6 +122,7 @@ java -ea                          \
 # Get pubspec dependencies and run the build runner
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
+dart fix --apply && dart format -l 100 .
 
 # Cleanup
 rm -rf "$(pwd)/Library/artifacts/"
