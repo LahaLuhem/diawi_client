@@ -49,6 +49,7 @@ if ! command -v "jq" > /dev/null; then
   curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
   # Setup temporary environment for jq
   jq="./$temp_download_dir/jq-win64.exe"
+else jq="jq"
 fi
 
 # All required commands should be guaranteed to have a pointer by this stage
