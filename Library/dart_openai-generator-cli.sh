@@ -17,6 +17,8 @@ cd "$(dirname "$0")" || exit 1
 
 set -o pipefail
 maven_version="3.9.4"
+jq_version="1.6"
+yq_version="4.44.3"
 
 client_library_name=$(basename "$(dirname "$PWD")")
 read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
@@ -46,11 +48,14 @@ fi
 
 if ! command -v "jq" > /dev/null; then
   >&2 echo "jq not found, fetching binary"
-  curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
+  curl -L https://github.com/jqlang/jq/releases/download/jq-$jq_version/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
   # Setup temporary environment for jq
   jq="./$temp_download_dir/jq-win64.exe"
 else jq="jq"
 fi
+
+curl -L https://github.com/mikefarah/yq/releases/download/v$yq_version/yq_darwin_amd64 -o $temp_download_dir/yq --create-dirs
+chmod +x "./$temp_download_dir/yq"
 
 # All required commands should be guaranteed to have a pointer by this stage
 
@@ -124,16 +129,24 @@ flutter pub get
 dart run build_runner build --delete-conflicting-outputs
 dart fix --apply && dart format -l 100 .
 
-# Cleanup
-rm -rf "$(pwd)/Library/artifacts/"
-find "$(pwd)/Library" -name "*.jar" -type f -delete
-
 echo "GENERATION DONE!"
 
+# Reformat + rebuild
 read -n 1 -p "Review any unusual changes. Press any key to apply fixes..."
 cp -R "$(pwd)/Library/resources/dart/" "$(pwd)/lib/src/"
 dart run build_runner build --delete-conflicting-outputs
 dart fix --apply && dart format -l 100 .
 
-read -n 1 -p "FIXES OVERWRITTEN. Press any key to exit..."
+# Fix analysis_options.yaml to ignore library resources
+cd "$(pwd)/Library/artifacts" || exit 1
+./yq eval '.analyzer.exclude += "Library/resources/dart/**"' -i "$(pwd)/../../analysis_options.yaml"
+cd ../..
+
+echo "FIXES OVERWRITTEN! Cleaning up."
+
+# Cleanup
+rm -rf "$(pwd)/Library/artifacts/"
+find "$(pwd)/Library" -name "*.jar" -type f -delete
+
+read -n 1 -p "CLEANUP DONE!. Press any key to exit..."
 exit 0
