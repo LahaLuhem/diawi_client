@@ -128,5 +128,12 @@ dart fix --apply && dart format -l 100 .
 rm -rf "$(pwd)/Library/artifacts/"
 find "$(pwd)/Library" -name "*.jar" -type f -delete
 
-read -n 1 -p "GENERATION DONE!. Press any key to exit..."
+echo "GENERATION DONE!"
+
+read -n 1 -p "Review any unusual changes. Press any key to apply fixes..."
+cp -R "$(pwd)/Library/resources/dart/" "$(pwd)/lib/src/"
+dart run build_runner build --delete-conflicting-outputs
+dart fix --apply && dart format -l 100 .
+
+read -n 1 -p "FIXES OVERWRITTEN. Press any key to exit..."
 exit 0
