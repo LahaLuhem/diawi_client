@@ -9,22 +9,22 @@
 stages:
 - test
 - Report generate
+- Format checks
 - Package deploy
 
 # Pub deploy:
 #   stage: Package deploy
 #   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
 #   tags:
-#     - windows
+#     - ubuntu
 #   rules:
 #     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
 #     - if: '$CI_COMMIT_BRANCH == "latest/dart"'
 #   before_script:
 #     - dart pub get
 #     - dart pub token add https://dart-packages.example.com --env-var $CI_JOB_TOKEN
-#   script: 
-#     - dart pub publish --dry-run
-#     - dart pub publish --server=${CI_API_V4_URL}/projects/${CI_PROJECT_ID/packages/dart
+#   script:
+#     - dart pub publish --server=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/dart
 
 Nuget deploy:
   stage: Package deploy
@@ -38,6 +38,19 @@ Nuget deploy:
   script: dotnet pack src/Dimerce.MavisClient/Dimerce.MavisClient.csproj -c Release;
           dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name $CI_COMMIT_BRANCH --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text;
           dotnet nuget push "src\Dimerce.MavisClient\bin\Release\*.nupkg" --source $CI_COMMIT_BRANCH;
+
+Dart format check:
+  stage: Format checks
+  image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
+  tags:
+    - ubuntu
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
+    - if: '$CI_COMMIT_BRANCH == "latest/dart"'
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\/dart$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
+  script:
+    - dart format -l 100 --set-exit-if-changed .
 
 sast:
   stage: test
