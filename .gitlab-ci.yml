@@ -6,14 +6,29 @@
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 
-image: mcr.microsoft.com/dotnet/sdk:6.0-windowsservercore-ltsc2022
-
 stages:
 - test
-- deploy
+- Report generate
+- Package deploy
 
-deploy:
-  stage: deploy
+# Pub deploy:
+#   stage: Package deploy
+#   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
+#   tags:
+#     - windows
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
+#     - if: '$CI_COMMIT_BRANCH == "latest/dart"'
+#   before_script:
+#     - dart pub get
+#     - dart pub token add https://dart-packages.example.com --env-var $CI_JOB_TOKEN
+#   script: 
+#     - dart pub publish --dry-run
+#     - dart pub publish --server=${CI_API_V4_URL}/projects/${CI_PROJECT_ID/packages/dart
+
+Nuget deploy:
+  stage: Package deploy
+  image: mcr.microsoft.com/dotnet/sdk:6.0-windowsservercore-ltsc2022
   tags:
     - windows
   rules:
@@ -28,5 +43,22 @@ sast:
   stage: test
   tags:
     - ubuntu
+  artifacts:
+    paths:
+      - "gl-sast-report.json"
+    expire_in: 1 days
+
+sast_wiki_deploy:
+  stage: Report generate
+  tags:
+    - ubuntu
+  image: python:3.9
+  before_script:
+    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@sources.didata.eu/dimerce/sast-wiki-dashboard.git
+    - pip install python-gitlab
+  script:
+    - python sast-wiki-dashboard/deploy_wiki_sast_report.py
+
 include:
-- template: Security/SAST.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
