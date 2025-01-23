@@ -149,6 +149,8 @@ Dart analysis:
     - if: '$CI_COMMIT_BRANCH == "latest/dart"'
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\/dart$/
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
+  before_script:
+    - dart pub get
   script:
     - dart analyze --fatal-infos .
 
