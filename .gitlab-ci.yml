@@ -5,12 +5,51 @@
 # Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
-
 stages:
-- test
-- Report generate
-- Format checks
-- Package deploy
+  - test
+  - Report
+  - MR checks
+  - Format checks
+  - Package deploy
+
+
+
+.ssh_dependencies_access_setup: &ssh_dependencies_access_setup
+  - if [ -f /.dockerenv ]; then
+      echo "Setting up Docker environment 🐳";
+      command -v ssh-agent >/dev/null || ( apt update -y && apt install openssh-client -y );
+      eval $(ssh-agent -s);
+      mkdir -p ~/.ssh;
+      echo "$SPARE_SSH_PRIVATE_KEY_64_ENCODED" | base64 --decode -w 0 | tr -d '\r' > ~/.ssh/id_ed25519;
+      chmod 600 ~/.ssh/id_ed25519;
+      ssh-keygen -y -f ~/.ssh/id_ed25519 > ~/.ssh/id_ed25519.pub;
+      chmod 700 ~/.ssh;
+      ssh-keyscan $CI_SERVER_HOST >> ~/.ssh/known_hosts;
+      chmod 644 ~/.ssh/known_hosts;
+    else
+      echo "Skipping Docker environment setup, assuming manual setup is enough... ⏭️";
+    fi
+  - git remote set-url origin git@$CI_SERVER_HOST:$CI_PROJECT_PATH.git;
+
+.flutter_project_setup: &flutter_project_setup
+  - cd $PROJECT_PATH
+  - if [ -e $HOME/.aliases ]; then
+      shopt -s expand_aliases;
+      source $HOME/.aliases;
+      echo "Aliases loaded 📖";
+    fi
+  - *ssh_dependencies_access_setup
+
+#  - if [ ! -f /.dockerenv ] && [ "$(flutter --version | awk 'NR==1 {print $2}')" != "$LATEST_FLUTTER_VERSION" ]; then
+#    echo "Flutter version requirement mismatch 🚨";
+#    echo "The latest version is $LATEST_FLUTTER_VERSION but you have $(flutter --version | awk 'NR==1 {print $2}').";
+#    exit 1;
+#  - fi
+#  - flutter pub get
+#  - flutter gen-l10n --template-arb-file=intl_en.arb
+  - export PATH="$PATH":"$HOME/.pub-cache/bin"
+
+
 
 # Pub deploy:
 #   stage: Package deploy
@@ -36,14 +75,62 @@ Nuget deploy:
     - if: '$CI_COMMIT_BRANCH == "latest/csharp"'
   before_script: iex "& { $(irm https://aka.ms/install-artifacts-credprovider.ps1) }"
   script: dotnet pack src/Dimerce.MavisClient/Dimerce.MavisClient.csproj -c Release;
-          dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name $CI_COMMIT_BRANCH --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text;
-          dotnet nuget push "src\Dimerce.MavisClient\bin\Release\*.nupkg" --source $CI_COMMIT_BRANCH;
+    dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name $CI_COMMIT_BRANCH --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text;
+    dotnet nuget push "src\Dimerce.MavisClient\bin\Release\*.nupkg" --source $CI_COMMIT_BRANCH;
+
+
+
+Git conventions checks:
+  stage: MR checks
+  tags:
+    - unix
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\//
+  script:
+    - git fetch --prune
+    - if [ -z "$CI_MERGE_REQUEST_DESCRIPTION" ]; then
+        echo "Merge request body is empty";
+        exit 1;
+      elif ! echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME" | grep -Eq '^(feature|bugfix|chore|refactor|acceptance-test-issues|hotfix)/[a-zA-Z]+-[0-9]+.*$'; then
+        echo "Source branch name does not match the regular expression. Can only be one of feature|bugfix|chore|refactor|acceptance-test-issues|hotfix";
+        exit 1;
+      elif [ $(git log --merges origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME.. --pretty=format:"%H" | wc -l) -ne 0 ]; then
+        echo "Merge commits found in the merge request.";
+        exit 1;
+      fi
+
+    - commitMessages=$(git log origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME.. --pretty=format:%s)
+    - while read -r commitMessage; do
+        if [ ${#commitMessage} -gt 70 ]; then
+          echo "Commit message exceeds 70 characters -> $commitMessage";
+        exit 1;
+        fi
+      done <<< "$commitMessages";
+
+    - echo "All git conventions followed ✅"
+
+MR requirements:
+  stage: MR checks
+  tags:
+    - unix
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\//
+  script:
+    - sem_labels_count=$(echo "$CI_MERGE_REQUEST_LABELS" | tr ',' '\n' | grep -c '^sem-')
+    - if [ "$sem_labels_count" -ne 1 ]; then
+        echo "❌ There must be exactly one label starting with 'sem-', but found $sem_labels_count.";
+        exit 1;
+      fi
+
+    - echo "All MR requirements fulfilled ✅";
+
+
 
 Dart format check:
   stage: Format checks
   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
   tags:
-    - ubuntu
+    - docker.executor
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
     - if: '$CI_COMMIT_BRANCH == "latest/dart"'
@@ -51,6 +138,19 @@ Dart format check:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
   script:
     - dart format -l 100 --set-exit-if-changed .
+
+Dart analysis:
+  stage: Format checks
+  image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
+  tags:
+    - docker.executor
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
+    - if: '$CI_COMMIT_BRANCH == "latest/dart"'
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\/dart$/
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
+  script:
+    - dart analyze --fatal-infos .
 
 sast:
   stage: test
@@ -62,12 +162,12 @@ sast:
     expire_in: 1 days
 
 sast_wiki_deploy:
-  stage: Report generate
+  stage: Report
   tags:
-    - ubuntu
+    - docker.executor
   image: python:3.9
   before_script:
-    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@sources.didata.eu/dimerce/sast-wiki-dashboard.git
+    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/dimerce/sast-wiki-dashboard.git
     - pip install python-gitlab
   script:
     - python sast-wiki-dashboard/deploy_wiki_sast_report.py
