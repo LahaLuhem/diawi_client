@@ -152,14 +152,21 @@ Dart analysis:
   script:
     - dart analyze --fatal-infos .
 
+
+
 sast:
   stage: test
   tags:
-    - ubuntu
+    - docker.executor
   artifacts:
     paths:
       - "gl-sast-report.json"
     expire_in: 1 days
+
+secret_detection:
+  stage: test
+  tags:
+    - docker.executor
 
 sast_wiki_deploy:
   stage: Report
