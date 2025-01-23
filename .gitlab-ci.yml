@@ -168,16 +168,16 @@ secret_detection:
   tags:
     - docker.executor
 
-sast_wiki_deploy:
-  stage: Report
-  tags:
-    - docker.executor
-  image: python:3.9
-  before_script:
-    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/dimerce/sast-wiki-dashboard.git
-    - pip install python-gitlab
-  script:
-    - python sast-wiki-dashboard/deploy_wiki_sast_report.py
+#sast_wiki_deploy:
+#  stage: Report
+#  tags:
+#    - docker.executor
+#  image: python:3.9
+#  before_script:
+#    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/dimerce/sast-wiki-dashboard.git
+#    - pip install python-gitlab
+#  script:
+#    - python sast-wiki-dashboard/deploy_wiki_sast_report.py
 
 include:
   - template: Security/SAST.gitlab-ci.yml
