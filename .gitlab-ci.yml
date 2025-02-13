@@ -156,31 +156,45 @@ Dart analysis:
 
 
 
-sast:
+semgrep-sast:
   stage: test
   tags:
     - docker.executor
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
   artifacts:
     paths:
-      - "gl-sast-report.json"
-    expire_in: 1 days
+      - gl-sast-report.json
 
 secret_detection:
   stage: test
   tags:
     - docker.executor
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
 
-#sast_wiki_deploy:
-#  stage: Report
-#  tags:
-#    - docker.executor
-#  image: python:3.9
-#  before_script:
-#    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/dimerce/sast-wiki-dashboard.git
-#    - pip install python-gitlab
-#  script:
-#    - python sast-wiki-dashboard/deploy_wiki_sast_report.py
+SAST Wiki deploy:
+  stage: test
+  tags:
+    - docker.executor
+  needs:
+    - job: semgrep-sast
+      artifacts: true
+  image: python:3.13
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
+  before_script:
+    - *ssh_dependencies_access_setup
+    - git clone --depth 1 --branch release/shallow https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/dimerce/sast-wiki-dashboard.git
+    - pip install --upgrade pip
+    - pip install python-gitlab
+  script:
+    - python sast-wiki-dashboard/deploy_wiki_sast_report.py
 
 include:
-  - template: Security/SAST.gitlab-ci.yml
+  - template: Jobs/SAST.latest.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
+
