@@ -17,6 +17,8 @@ cd "$(dirname "$0")" || exit 1
 
 set -o pipefail
 maven_version="3.9.4"
+jq_version="1.6"
+yq_version="4.44.3"
 
 client_library_name=$(basename "$(dirname "$PWD")")
 read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
@@ -35,7 +37,7 @@ if ! command -v "mvn" > /dev/null; then
   curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o $temp_download_dir/maven.zip --create-dirs
 
   cd $temp_download_dir || exit 1
-  unzip -o maven.zip || read -pr "$(echo $'\n')No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script$(echo $'\n_ ')"
+  unzip -o maven.zip || read -pr "No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script$(echo $'\n_ ')"
   cd ..
   rm -f $temp_download_dir/maven.zip
 
@@ -46,10 +48,14 @@ fi
 
 if ! command -v "jq" > /dev/null; then
   >&2 echo "jq not found, fetching binary"
-  curl -L https://github.com/jqlang/jq/releases/download/jq-1.6/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
+  curl -L https://github.com/jqlang/jq/releases/download/jq-$jq_version/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
   # Setup temporary environment for jq
   jq="./$temp_download_dir/jq-win64.exe"
+else jq="jq"
 fi
+
+curl -L https://github.com/mikefarah/yq/releases/download/v$yq_version/yq_darwin_amd64 -o $temp_download_dir/yq --create-dirs
+chmod +x "./$temp_download_dir/yq"
 
 # All required commands should be guaranteed to have a pointer by this stage
 
@@ -92,7 +98,7 @@ if [ ! -f "${DIR}/${jar}" ]; then
     -Ddest="${DIR}/${jar}"
 fi
 
- # Execute JAR generator
+# Execute JAR generator
 cd ..
 # Cleanup the repo from any previous runs
 rm -rf .github/
