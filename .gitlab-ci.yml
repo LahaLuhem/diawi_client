@@ -182,6 +182,7 @@ SAST Wiki deploy:
   needs:
     - job: semgrep-sast
       artifacts: true
+  allow_failure: true
   image: python:3.13
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -197,4 +198,3 @@ SAST Wiki deploy:
 include:
   - template: Jobs/SAST.latest.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
-
