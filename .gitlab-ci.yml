@@ -134,7 +134,11 @@ Dart format check:
   stage: Format checks
   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
   tags:
-    - docker.executor
+    - unix
+  cache:
+    - key: dartpub
+      paths:
+        - $HOME/.pub-cache
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
     - if: '$CI_COMMIT_BRANCH == "latest/dart"'
@@ -147,7 +151,11 @@ Dart analysis:
   stage: Format checks
   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
   tags:
-    - docker.executor
+    - unix
+  cache:
+    - key: dartpub
+      paths:
+        - $HOME/.pub-cache
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
     - if: '$CI_COMMIT_BRANCH == "latest/dart"'
