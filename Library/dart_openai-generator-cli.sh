@@ -16,33 +16,22 @@ rm -f ./*.yaml
 rm -f README.md
 rm -f pubspec.lock
 
-# Execute JAR generator
+# Execute generators
 cd ..
-openapi-generator generate   \
-        -i Library/swagger.json                       \
-        -g dart-dio                                   \
-        -o .                                          \
-        --skip-validate-spec                          \
-        --additional-properties pubName="${client_library_name}"  \
+openapi-generator generate      \
+        -i Library/swagger.json                                         \
+        -g dart-dio                                                     \
+        -o .                                                            \
+        --additional-properties pubName="${client_library_name}"        \
         --additional-properties pubLibrary="${client_library_name}".api
 
 dart run build_runner build --delete-conflicting-outputs
+
+# Fixes
 dart fix --apply && dart format -l 100 .
 
+# Cleanup
 dart pub global deactivate openapi_generator_cli
-
-
-
-## Fix analysis_options.yaml to ignore library resources
-#cd "$(pwd)/Library/artifacts" || exit 1
-#./yq eval '.analyzer.exclude += "Library/resources/dart/**"' -i "$(pwd)/../../analysis_options.yaml"
-#cd ../..
-#
-#echo "FIXES OVERWRITTEN! Cleaning up."
-#
-## Cleanup
-#rm -rf "$(pwd)/Library/artifacts/"
-#find "$(pwd)/Library" -name "*.jar" -type f -delete
 
 read -n 1 -p "CLEANUP DONE!. Press any key to exit..."
 exit 0
