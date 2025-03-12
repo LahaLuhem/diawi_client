@@ -10,7 +10,7 @@ export PATH="$HOME/fvm/default/bin:$PATH"
 dart pub global activate openapi_generator_cli
 
 # Declarations
-api_version_tag="1.26"
+api_version_tag="v3"
 
 # Cleanup the repo from any previous runs
 rm -rf .openapi-generator/
@@ -24,7 +24,7 @@ rm -f pubspec.lock
 # Execute generators
 cd ..
 openapi-generator generate                                                      \
-        -i http://127.0.0.1:8111/v3/api-docs/${api_version_tag}/swagger.json    \
+        -i https://petstore3.swagger.io/api/${api_version_tag}/openapi.json     \
         -g dart-dio                                                             \
         -o .                                                                    \
         --additional-properties pubName="${client_library_name}"                \

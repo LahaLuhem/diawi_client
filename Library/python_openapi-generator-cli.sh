@@ -9,7 +9,7 @@ read -r -n 1 -p "The client name will be '$client_library_name'. Press any key t
 python -m pip install openapi-generator-cli[jdk4py]
 
 # Declarations
-api_version_tag="1.26"
+api_version_tag="v3"
 
 # Cleanup the repo from any previous runs
 rm -rf .openapi-generator/
@@ -20,7 +20,7 @@ rm -rf test/
 # Execute generators
 cd ..
 openapi-generator-cli generate                                                  \
-        -i http://127.0.0.1:8111/v3/api-docs/${api_version_tag}/swagger.json    \
+        -i https://petstore3.swagger.io/api/${api_version_tag}/openapi.json     \
         -g python                                                               \
         -o .                                                                    \
         --additional-properties packageName="${client_library_name}.src"
