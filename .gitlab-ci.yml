@@ -171,7 +171,7 @@ Dart analysis:
 semgrep-sast:
   stage: test
   tags:
-    - docker.executor
+    - docker
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
@@ -182,7 +182,7 @@ semgrep-sast:
 secret_detection:
   stage: test
   tags:
-    - docker.executor
+    - docker
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == $CI_DEFAULT_BRANCH
@@ -190,7 +190,7 @@ secret_detection:
 SAST Wiki deploy:
   stage: test
   tags:
-    - docker.executor
+    - docker
   needs:
     - job: semgrep-sast
       artifacts: true
