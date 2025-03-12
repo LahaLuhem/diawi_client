@@ -22,7 +22,6 @@ openapi-generator generate      \
         -i http://127.0.0.1:8111/v3/api-docs                            \
         -g dart-dio                                                     \
         -o .                                                            \
-        --skip-validate-spec                                            \
         --additional-properties pubName="${client_library_name}"        \
         --additional-properties pubLibrary="${client_library_name}".api
 
