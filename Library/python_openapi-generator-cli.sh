@@ -23,7 +23,9 @@ openapi-generator-cli generate                                                  
         -i https://petstore3.swagger.io/api/${api_version_tag}/openapi.json     \
         -g python                                                               \
         -o .                                                                    \
-        --additional-properties packageName="${client_library_name}.src"
+        --additional-properties packageName="${client_library_name}.src"        \
+        --additional-properties packageVersion="${api_version_tag}".0           \
+        --additional-properties library=asyncio
 
 # Cleanup
 python -m pip uninstall openapi-generator-cli[jdk4py]

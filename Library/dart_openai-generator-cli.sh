@@ -10,7 +10,7 @@ export PATH="$HOME/fvm/default/bin:$PATH"
 dart pub global activate openapi_generator_cli
 
 # Declarations
-api_version_tag="v3"
+api_version_tag="3"
 
 # Cleanup the repo from any previous runs
 rm -rf .openapi-generator/
@@ -24,11 +24,14 @@ rm -f pubspec.lock
 # Execute generators
 cd ..
 openapi-generator generate                                                      \
-        -i https://petstore3.swagger.io/api/${api_version_tag}/openapi.json     \
+        -i https://petstore3.swagger.io/api/v${api_version_tag}/openapi.json    \
         -g dart-dio                                                             \
         -o .                                                                    \
         --additional-properties pubName="${client_library_name}"                \
-        --additional-properties pubLibrary="${client_library_name}".api
+        --additional-properties pubLibrary="${client_library_name}".api         \
+        --additional-properties pubVersion="${api_version_tag}".0.0             \
+        --additional-properties pubAuthor="$(git config user.name)"             \
+        --additional-properties pubAuthorEmail="$(git config user.email)"
 
 dart run build_runner build --delete-conflicting-outputs
 
