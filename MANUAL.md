@@ -18,12 +18,12 @@ Use it directly as a git dependency. That way, you get all the latest updates an
 The non-dev branches function as release branches. For example, branch `1.16` corresponds to the generated plugin for 'Swagger v1.16'.
 
 1. Follow the steps to [create a deployment token](https://medium.com/flutter-community/flutter-pubspec-and-private-gitlab-repositories-d092a4648639) in the Gitlab repository.
-2. Use the deployment token and its name to add the mavis_client dependency in the pubspec.yaml as
+2. Use the deployment token and its name to add the base_openapi_client dependency in the pubspec.yaml as
 ```
 ...
-mavis_client:
+base_openapi_client:
     git:
-      url: https://<token_username>:<token>@sources.didata.eu/dimerce/flutter/mavis_client/
+      url: https://<token_username>:<token>@sources.didata.eu/dimerce/flutter/base_openapi_client/
       ref: "<branch_name>"
 
 ```
@@ -57,18 +57,17 @@ In case of failure of the above script and urgency, use the manual generation st
 Open the terminal here at the root of the project and execute the code-generation command.
 #### Jar execution
 ```sh
-java -jar Library/openapi-generator-cli.jar generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=mavis_client --additional-properties pubLibrary=mavis_client.api
+java -jar Library/openapi-generator-cli.jar generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=base_openapi_client --additional-properties pubLibrary=base_openapi_client.api
 ```
 #### Brew package execution
 ```sh
-openapi-generator generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=mavis_client --additional-properties pubLibrary=mavis_client.api
+openapi-generator generate -i Library/swagger.json -g dart-dio -o . --skip-validate-spec --additional-properties pubName=base_openapi_client --additional-properties pubLibrary=base_openapi_client.api
 ```
 And the run the build-runner, following which, fix any remaining errors (see [Fixing errors](#fixing-errors) section).
 
 ## Fixing errors
 The following is a recorded (and changing) list of errors that are needed to be fixed after the code generation.<br>
 If there is a new error, please create a new tag and add append it. If a tag is no longer an error (fix needs to be reverted), remove it from the list
-| **Tag Name**                  | **Since version** |
-|:-----------------------------:|:-----------------:|
-| MediaInformation.hashCode fix | 1.16              |
-
+| **Tag Name**                              |   **Reapplied in versions**   |
+|:-----------------------------------------:|:-----------------------------:|
+|                                           |                               |
