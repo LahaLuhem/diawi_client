@@ -1,137 +1,32 @@
 #!/usr/bin/env bash
 cd "$(dirname "$0")" || exit 1
-####
-# If you want repeatable executions, you can explicitly set a version via
-#    OPENAPI_GENERATOR_VERSION
-# e.g. (in Bash)
-#    export OPENAPI_GENERATOR_VERSION=3.1.0
-#    openapi-generator-cli.sh
-# or
-#    OPENAPI_GENERATOR_VERSION=3.1.0 openapi-generator-cli.sh
-#
-# This is also helpful, for example, if you want to evaluate a SNAPSHOT version.
-#
-# NOTE: Jars are downloaded on demand from maven into the same directory as this script
-# for every 'latest' version pulled from github. Consider putting this under its own directory.
-####
 
-set -o pipefail
-maven_version="3.9.4"
-jq_version="1.6"
-yq_version="4.44.3"
-
+# Preamble
 client_library_name=$(basename "$(dirname "$PWD")")
-read -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now.$(echo $'\n_ ')"
-temp_download_dir="artifacts"
+read -r -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now."$'\n'
 
-if ! command -v "curl" > /dev/null; then
-  >&2 echo "This script requires 'curl' to be installed."
-  read -n 1 -p "press any button to continue ...$(echo $'\n_ ')"
-  exit 1
-fi
+# Ensure dependencies
+python -m pip install openapi-generator-cli[jdk4py]
 
-if ! command -v "mvn" > /dev/null; then
-  >&2 echo "mvn not found, fetching binary"
-  # Download a fresh maven binary.
-  # Repeated use of a local library causes problems due to file-mode changes
-  curl -L https://downloads.apache.org/maven/maven-3/$maven_version/binaries/apache-maven-$maven_version-bin.zip -o $temp_download_dir/maven.zip --create-dirs
+# Declarations
+api_version_tag="1.26"
 
-  cd $temp_download_dir || exit 1
-  unzip -o maven.zip || read -pr "No Maven binary for that version found. Please goto https://downloads.apache.org/maven/maven-3/ and check for any newer version name, and replace it at the beginning of the script$(echo $'\n_ ')"
-  cd ..
-  rm -f $temp_download_dir/maven.zip
-
-  # Setup temporary environment for Maven build
-  env MAVEN_HOME="$(pwd)/$temp_download_dir/apache-maven-$maven_version"
-  mvn="./$temp_download_dir/apache-maven-$maven_version/bin/mvn"
-fi
-
-if ! command -v "jq" > /dev/null; then
-  >&2 echo "jq not found, fetching binary"
-  curl -L https://github.com/jqlang/jq/releases/download/jq-$jq_version/jq-win64.exe -o $temp_download_dir/jq-win64.exe --create-dirs
-  # Setup temporary environment for jq
-  jq="./$temp_download_dir/jq-win64.exe"
-else jq="jq"
-fi
-
-curl -L https://github.com/mikefarah/yq/releases/download/v$yq_version/yq_darwin_amd64 -o $temp_download_dir/yq --create-dirs
-chmod +x "./$temp_download_dir/yq"
-
-# All required commands should be guaranteed to have a pointer by this stage
-
-
-# This script will query github on every invocation to pull the latest released version
-# of openapi-generator.
-function latest.tag {
-  local uri="https://api.github.com/repos/${1}/releases"
-  local ver
-  ver=$(curl -s "${uri}" | $jq -r 'first(.[]|select(.prerelease==false)).tag_name')
-  if [[ $ver == v* ]]; then
-    ver=${ver:1}
-  fi
-  echo "$ver"
-}
-
-gh_repo=openapitools/openapi-generator
-group_id=org.openapitools
-artifact_id=openapi-generator-cli
-ver=${OPENAPI_GENERATOR_VERSION:-$(latest.tag $gh_repo)}
-
-jar=${artifact_id}-${ver}.jar
-cache_dir=${OPENAPI_GENERATOR_DOWNLOAD_CACHE_DIR}
-
-DIR=${cache_dir:-"$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
-
-if [ ! -d "${DIR}" ]; then
-  mkdir -p "${DIR}"
-fi
-
-if [ ! -f "${DIR}/${jar}" ]; then
-  repo="central::default::https://repo1.maven.org/maven2/"
-  if [[ ${ver} =~ ^.*-SNAPSHOT$ ]]; then
-      repo="central::default::https://oss.sonatype.org/content/repositories/snapshots"
-  fi
-  $mvn org.apache.maven.plugins:maven-dependency-plugin:2.9:get \
-    -DremoteRepositories=${repo} \
-    -Dartifact="${group_id}:${artifact_id}:${ver}" \
-    -Dtransitive=false \
-    -Ddest="${DIR}/${jar}"
-fi
-
-# Execute JAR generator
-cd ..
 # Cleanup the repo from any previous runs
-rm -rf .github/
 rm -rf .openapi-generator/
-rm -rf docs/
-rm -rf gen/
-rm -rf "${client_library_name}"
+rm -rf doc/
+rm -rf lib/
 rm -rf test/
-rm -f .openapi-generator-ignore
-rm -f ./.*.yml
-rm -f git_push.sh
-rm -f pyproject.toml
-rm -f ./*requirements.txt
-rm -f ./setup.*
-rm -f tox.ini
-rm -f README.md
 
-# shellcheck disable=SC2086
-java -ea                          \
-  ${JAVA_OPTS}                    \
-  -Xms512M                        \
-  -Xmx1024M                       \
-  -server                         \
-  -jar "${DIR}/${jar}" generate   \
-      -i Library/swagger.json                   \
-      -g python                                 \
-      -o .                                      \
-      --skip-validate-spec                      \
-      --additional-properties packageName="${client_library_name}.src"
+# Execute generators
+cd ..
+openapi-generator-cli generate                                                  \
+        -i http://127.0.0.1:8111/v3/api-docs/${api_version_tag}/swagger.json    \
+        -g python                                                               \
+        -o .                                                                    \
+        --additional-properties packageName="${client_library_name}.src"
 
 # Cleanup
-rm -rf "$(pwd)/Library/artifacts/"
-find "$(pwd)/Library" -name "*.jar" -type f -delete
+python -m pip uninstall openapi-generator-cli[jdk4py]
 
-read -n 1 -p "GENERATION DONE!. Press any key to exit..."
+read -r -n 1 -p "CLEANUP DONE!. Press any key to exit..."
 exit 0
