@@ -24,7 +24,7 @@ openapi-generator-cli generate                                                  
         -g bash                                                                 \
         -o .                                                                    \
         --additional-properties scriptName="${client_library_name}-cli.sh"      \
-        --additional-properties hostEnvironmentVariable=PETSTORE_HOST           \
+        --additional-properties hostEnvironmentVariable=DIAWI_HOST              \
         --additional-properties generateBashCompletion=true                     \
         --additional-properties generateZshCompletion=true                      \
         --additional-properties prependFormOrBodyParameters=true                \
