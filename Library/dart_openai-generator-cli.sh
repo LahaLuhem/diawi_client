@@ -35,8 +35,16 @@ openapi-generator generate                                                      
 
 dart run build_runner build --delete-conflicting-outputs
 
+# Setup formatter options
+if ! command -v yq &> /dev/null; then
+  wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq || (echo "Failed to install yq" && exit 1);
+  chmod +x /usr/local/bin/yq;
+fi
+yq eval -i '.formatter = {"page_width": 100}' analysis_options.yaml
+
+
 # Fixes
-dart fix --apply && dart format -l 100 .
+dart fix --apply && dart format .
 
 # Cleanup
 dart pub global deactivate openapi_generator_cli

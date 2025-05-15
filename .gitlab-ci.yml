@@ -145,7 +145,7 @@ Dart format check:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\/dart$/
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
   script:
-    - dart format -l 100 --set-exit-if-changed .
+    - dart format --set-exit-if-changed .
 
 Dart analysis:
   stage: Format checks
