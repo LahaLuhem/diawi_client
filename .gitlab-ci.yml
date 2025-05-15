@@ -13,7 +13,7 @@ stages:
   - test
   - Report
   - MR checks
-  - Format checks
+  - Base Dart checks
   - Package deploy
 
 
@@ -113,25 +113,8 @@ Git conventions checks:
 
     - echo "All git conventions followed ✅"
 
-MR requirements:
-  stage: MR checks
-  tags:
-    - unix
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\//
-  script:
-    - sem_labels_count=$(echo "$CI_MERGE_REQUEST_LABELS" | tr ',' '\n' | grep -c '^sem-')
-    - if [ "$sem_labels_count" -ne 1 ]; then
-        echo "❌ There must be exactly one label starting with 'sem-', but found $sem_labels_count.";
-        exit 1;
-      fi
-
-    - echo "All MR requirements fulfilled ✅";
-
-
-
 Dart format check:
-  stage: Format checks
+  stage: Base Dart checks
   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
   tags:
     - unix
@@ -141,14 +124,12 @@ Dart format check:
         - $HOME/.pub-cache
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
-    - if: '$CI_COMMIT_BRANCH == "latest/dart"'
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\/dart$/
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
   script:
     - dart format --set-exit-if-changed .
 
 Dart analysis:
-  stage: Format checks
+  stage: Base Dart checks
   image: ghcr.io/cirruslabs/flutter:$LATEST_FLUTTER_VERSION
   tags:
     - unix
@@ -158,9 +139,7 @@ Dart analysis:
         - $HOME/.pub-cache
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^[0-9]+\.[0-9]+\/dart$/'
-    - if: '$CI_COMMIT_BRANCH == "latest/dart"'
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^[0-9]+\.[0-9]+\/dart$/
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ "latest/dart"
   before_script:
     - dart pub get
   script:
