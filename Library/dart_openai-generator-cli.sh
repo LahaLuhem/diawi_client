@@ -23,15 +23,17 @@ rm -f pubspec.lock
 
 # Execute generators
 cd ..
-openapi-generator generate                                                      \
-        -i https://petstore3.swagger.io/api/v${api_version_tag}/openapi.json    \
-        -g dart-dio                                                             \
-        -o .                                                                    \
-        --additional-properties pubName="${client_library_name}"                \
-        --additional-properties pubLibrary="${client_library_name}".api         \
-        --additional-properties pubVersion="${api_version_tag}".0.0             \
-        --additional-properties pubAuthor="$(git config user.name)"             \
-        --additional-properties pubAuthorEmail="$(git config user.email)"
+openapi-generator generate                                                        \
+        -i https://petstore3.swagger.io/api/v${api_version_tag}/openapi.json      \
+        -g dart-dio                                                               \
+        -o .                                                                      \
+        --additional-properties pubName="${client_library_name}"                  \
+        --additional-properties pubLibrary="${client_library_name}".api           \
+        --additional-properties pubVersion="${api_version_tag}".0.0               \
+        --additional-properties pubAuthor="$(git config user.name)"               \
+        --additional-properties pubAuthorEmail="$(git config user.email)"         \
+        --additional-properties pubHomepage="https://onepub.dev/api/ylznnoflyg"   \
+        --additional-properties pubPublishTo="https://onepub.dev/api/ylznnoflyg"
 
 dart run build_runner build --delete-conflicting-outputs
 
