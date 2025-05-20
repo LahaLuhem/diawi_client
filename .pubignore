@@ -1,0 +1,5 @@
+doc/**
+Library/**
+test/**
+openapi_generator_config.json
+MANUAL.md
