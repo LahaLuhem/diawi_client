@@ -6,7 +6,7 @@ client_library_name=$(basename "$(dirname "$PWD")")
 read -r -n 1 -p "The client name will be '$client_library_name'. Press any key to continue. Press Ctrl+C to stop now."$'\n'
 
 # Ensure dependencies
-export PATH="$HOME/fvm/default/bin:$PATH"
+export PATH="$PATH":"$HOME/.puro/shared/pub_cache/bin"
 dart pub global activate openapi_generator_cli
 
 # Declarations
