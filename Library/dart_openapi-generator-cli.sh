@@ -32,7 +32,6 @@ rm -f pubspec.lock
 
 
 # Execute openapi-generator generator
-cd ..
 openapi-generator generate                                                                                              \
         -i https://petstore3.swagger.io/api/v${api_version_tag}/openapi.json                                            \
         -g dart-dio                                                                                                     \
