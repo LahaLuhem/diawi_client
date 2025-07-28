@@ -22,6 +22,7 @@ fi
 api_version_tag="3"
 
 # Cleanup the repo from any previous runs
+cd ..
 rm -rf .openapi-generator/
 rm -rf doc/
 rm -rf lib/
