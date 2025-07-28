@@ -42,7 +42,7 @@ openapi-generator generate                                                      
         --additional-properties pubAuthor="$(git config --local user.name)"                                             \
         --additional-properties pubAuthorEmail="$(git config --local user.email)"                                       \
         --additional-properties pubHomepage="https://github.com/$(git config --local user.name)/${client_library_name}" \
-        --additional-properties pubPublishTo=""                                                                  \
+        --additional-properties pubPublishTo="pub.dev"                                                                  \
         --additional-properties pubDescription="Petstore OpenAPI API client"                                            \
         --additional-properties serializationLibrary="json_serializable"
 # Cleanup
