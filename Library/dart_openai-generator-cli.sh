@@ -55,7 +55,15 @@ dart pub global deactivate openapi_generator_cli
 
 
 # Pregen fixes
-read -r -n 1 -p "Please ensure that the Dart SDK (min) constraints in pubspec.yaml support null-aware-elements (3.8.1). Press ENTER to confirm and proceed. Press Ctrl+C to stop now."$'\n'
+echo "Updating Dart SDK constraints ⬆️ . . ."
+if command -v yq &> /dev/null; then
+  echo "yq available, using yq"
+  yq eval '.environment.sdk = ">=3.8.1 <4.0.0"' -i pubspec.yaml
+else
+  echo "yq not available, using sed"
+  sed -i '' "s/\(sdk:\).*/\1 '>=3.8.1 <4.0.0'/" pubspec.yaml
+fi
+echo "Done updating Dart SDK constraints ✅"
 
 
 
