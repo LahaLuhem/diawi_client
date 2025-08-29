@@ -54,26 +54,6 @@ dart pub global deactivate openapi_generator_cli
 
 
 
-# Add copyWith annotations
-dart pub add copy_with_extension
-dart pub add --dev copy_with_extension_gen
-
-# Annotate every class with `CopyWith`
-find lib/src/model -type f -name '*.dart' | while read -r file; do
-# Insert import if missing
-grep -q "copy_with_extension" "$file" || sed -i '' "/package:json_annotation/a\\
-import 'package:copy_with_extension/copy_with_extension.dart';
-" "$file"
-
-# Insert @CopyWith() if missing
-grep -q "@CopyWith" "$file" || sed -i '' "/@JsonSerializable/i\\
-@CopyWith()
-" "$file"
-done
-
-
-
-
 # Pregen fixes
 read -r -n 1 -p "Please ensure that the Dart SDK (min) constraints in pubspec.yaml support null-aware-elements (3.8.1). Press ENTER to confirm and proceed. Press Ctrl+C to stop now."$'\n'
 
@@ -81,7 +61,7 @@ read -r -n 1 -p "Please ensure that the Dart SDK (min) constraints in pubspec.ya
 
 
 # Run build_runner
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build --delete-conflicting-outputs --enable-experiment null-aware-elements
 
 
 
