@@ -68,6 +68,23 @@ echo "Done updating Dart SDK constraints ✅"
 
 
 
+# Make every model class have a const constructor
+find "lib/src/model" -type f -name '*.dart' | while read -r file; do
+  # Extract the class name from the file (first class definition found)
+  class_name=$(grep -m1 -E '^class [A-Za-z_][A-Za-z0-9_]*' "$file" | awk '{print $2}')
+  
+  if [[ -n "$class_name" ]]; then
+    # Add 'const' before the constructor using sed
+    sed -i '' "s/^\([[:space:]]*\)$class_name({/\1const $class_name({/" "$file"
+  else
+    echo "No class found in $file ❌"
+  fi
+done
+echo "Done adding const to model constructors ✅"
+
+
+
+
 # Run build_runner
 dart run build_runner build --delete-conflicting-outputs --enable-experiment null-aware-elements
 
