@@ -11,10 +11,7 @@ export PATH="$PATH":"$HOME/.puro/shared/pub_cache/bin"
 dart pub global activate openapi_generator_cli
 # Puro proxying
 if command -v puro &> /dev/null; then
-  # shellcheck disable=SC2317
-  flutter() { puro flutter "$@"; };
   dart() { puro dart "$@"; };
-  export -f flutter;
   export -f dart;
 fi
 
